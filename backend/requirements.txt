@@ -9,3 +9,4 @@ langchain-google-genai>=1.0.1
 chromadb>=0.4.24
 pypdf>=4.1.0
 python-multipart>=0.0.9
+sentence-transformers
