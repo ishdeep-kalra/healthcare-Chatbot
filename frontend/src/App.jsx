@@ -140,7 +140,8 @@ export default function App() {
     // Call API backend
     setIsLoading(true);
     try {
-      const response = await axios.post("http://127.0.0.1:8000/api/chat", {
+       response = await axios.post(
+  "https://healthcare-chatbot-q84v.onrender.com/api/chat", {
         question: text,
       });
 
