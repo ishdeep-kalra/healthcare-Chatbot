@@ -1,284 +1,284 @@
 {
-  "medical_documents\\Cardiology\\7.-stroke-24-04-19.pdf": {
-    "mtime": 1782980859.1169846,
-    "size": 6897097,
-    "chunks_count": 18,
-    "indexed_at": "2026-07-04 00:49:06"
-  },
-  "medical_documents\\Cardiology\\9789241547260_eng.pdf": {
-    "mtime": 1782980794.5694146,
-    "size": 708658,
-    "chunks_count": 60,
-    "indexed_at": "2026-07-04 00:49:07"
-  },
-  "medical_documents\\Cardiology\\B156_(20)-en.pdf": {
-    "mtime": 1782980889.8676417,
-    "size": 210474,
-    "chunks_count": 21,
-    "indexed_at": "2026-07-04 00:49:07"
-  },
-  "medical_documents\\Cardiology\\EMHJ_2019_25_01_47_57.pdf": {
-    "mtime": 1782980831.374017,
-    "size": 452412,
-    "chunks_count": 65,
-    "indexed_at": "2026-07-04 00:49:08"
-  },
-  "medical_documents\\Cardiology\\immunization-routine-table2.pdf": {
-    "mtime": 1782980940.0425131,
-    "size": 218260,
-    "chunks_count": 89,
-    "indexed_at": "2026-07-04 00:49:09"
-  },
-  "medical_documents\\Cardiology\\IRQ_D1_Asthma Guideline.pdf": {
-    "mtime": 1782980763.6170602,
-    "size": 784945,
-    "chunks_count": 67,
-    "indexed_at": "2026-07-04 00:49:09"
-  },
-  "medical_documents\\Cardiology\\IRQ_D1_Hypertension-MOH.pdf": {
-    "mtime": 1782980741.368024,
-    "size": 1136451,
-    "chunks_count": 106,
-    "indexed_at": "2026-07-04 00:49:10"
-  },
-  "medical_documents\\Cardiology\\update-28-covid-19-what-we-know.pdf": {
-    "mtime": 1782980913.6995158,
-    "size": 1764636,
-    "chunks_count": 18,
-    "indexed_at": "2026-07-04 00:49:11"
-  },
-  "medical_documents\\Cardiology\\who_dmg.pdf": {
-    "mtime": 1782370730.050925,
-    "size": 259231,
-    "chunks_count": 117,
-    "indexed_at": "2026-07-04 00:49:11"
-  },
-  "medical_documents\\General\\7.-stroke-24-04-19.pdf": {
-    "mtime": 1782980859.1169846,
-    "size": 6897097,
-    "chunks_count": 18,
-    "indexed_at": "2026-07-04 00:49:12"
-  },
-  "medical_documents\\General\\9789241547260_eng.pdf": {
-    "mtime": 1782980794.5694146,
-    "size": 708658,
-    "chunks_count": 60,
-    "indexed_at": "2026-07-04 00:49:13"
-  },
-  "medical_documents\\General\\B156_(20)-en.pdf": {
-    "mtime": 1782980889.8676417,
-    "size": 210474,
-    "chunks_count": 21,
-    "indexed_at": "2026-07-04 00:49:13"
-  },
-  "medical_documents\\General\\EMHJ_2019_25_01_47_57.pdf": {
-    "mtime": 1782980831.374017,
-    "size": 452412,
-    "chunks_count": 65,
-    "indexed_at": "2026-07-04 00:49:14"
-  },
-  "medical_documents\\General\\immunization-routine-table2.pdf": {
-    "mtime": 1782980940.0425131,
-    "size": 218260,
-    "chunks_count": 89,
-    "indexed_at": "2026-07-04 00:49:15"
-  },
-  "medical_documents\\General\\IRQ_D1_Asthma Guideline.pdf": {
-    "mtime": 1782980763.6170602,
-    "size": 784945,
-    "chunks_count": 67,
-    "indexed_at": "2026-07-04 00:49:15"
-  },
-  "medical_documents\\General\\IRQ_D1_Hypertension-MOH.pdf": {
-    "mtime": 1782980741.368024,
-    "size": 1136451,
-    "chunks_count": 106,
-    "indexed_at": "2026-07-04 00:49:16"
-  },
-  "medical_documents\\General\\update-28-covid-19-what-we-know.pdf": {
-    "mtime": 1782980913.6995158,
-    "size": 1764636,
-    "chunks_count": 18,
-    "indexed_at": "2026-07-04 00:49:17"
-  },
-  "medical_documents\\General\\who_dmg - Copy.pdf": {
-    "mtime": 1782370730.050925,
-    "size": 259231,
-    "chunks_count": 117,
-    "indexed_at": "2026-07-04 00:49:17"
-  },
   "medical_documents\\General\\who_dmg.pdf": {
     "mtime": 1782906495.5396278,
     "size": 259231,
     "chunks_count": 117,
-    "indexed_at": "2026-07-04 00:49:17"
-  },
-  "medical_documents\\Neurology\\7.-stroke-24-04-19.pdf": {
-    "mtime": 1782980859.1169846,
-    "size": 6897097,
-    "chunks_count": 18,
-    "indexed_at": "2026-07-04 00:49:18"
-  },
-  "medical_documents\\Neurology\\9789241547260_eng.pdf": {
-    "mtime": 1782980794.5694146,
-    "size": 708658,
-    "chunks_count": 60,
-    "indexed_at": "2026-07-04 00:49:19"
-  },
-  "medical_documents\\Neurology\\B156_(20)-en.pdf": {
-    "mtime": 1782980889.8676417,
-    "size": 210474,
-    "chunks_count": 21,
-    "indexed_at": "2026-07-04 00:49:19"
-  },
-  "medical_documents\\Neurology\\EMHJ_2019_25_01_47_57.pdf": {
-    "mtime": 1782980831.374017,
-    "size": 452412,
-    "chunks_count": 65,
-    "indexed_at": "2026-07-04 00:49:20"
-  },
-  "medical_documents\\Neurology\\immunization-routine-table2.pdf": {
-    "mtime": 1782980940.0425131,
-    "size": 218260,
-    "chunks_count": 89,
-    "indexed_at": "2026-07-04 00:49:20"
-  },
-  "medical_documents\\Neurology\\IRQ_D1_Asthma Guideline.pdf": {
-    "mtime": 1782980763.6170602,
-    "size": 784945,
-    "chunks_count": 67,
-    "indexed_at": "2026-07-04 00:49:21"
-  },
-  "medical_documents\\Neurology\\IRQ_D1_Hypertension-MOH.pdf": {
-    "mtime": 1782980741.368024,
-    "size": 1136451,
-    "chunks_count": 106,
-    "indexed_at": "2026-07-04 00:49:22"
-  },
-  "medical_documents\\Neurology\\update-28-covid-19-what-we-know.pdf": {
-    "mtime": 1782980913.6995158,
-    "size": 1764636,
-    "chunks_count": 18,
-    "indexed_at": "2026-07-04 00:49:22"
-  },
-  "medical_documents\\Neurology\\who_dmg.pdf": {
-    "mtime": 1782370730.050925,
-    "size": 259231,
-    "chunks_count": 117,
-    "indexed_at": "2026-07-04 00:49:23"
-  },
-  "medical_documents\\Pharmacology\\7.-stroke-24-04-19.pdf": {
-    "mtime": 1782980859.1169846,
-    "size": 6897097,
-    "chunks_count": 18,
-    "indexed_at": "2026-07-04 00:49:23"
-  },
-  "medical_documents\\Pharmacology\\9789241547260_eng.pdf": {
-    "mtime": 1782980794.5694146,
-    "size": 708658,
-    "chunks_count": 60,
-    "indexed_at": "2026-07-04 00:49:24"
-  },
-  "medical_documents\\Pharmacology\\B156_(20)-en.pdf": {
-    "mtime": 1782980889.8676417,
-    "size": 210474,
-    "chunks_count": 21,
-    "indexed_at": "2026-07-04 00:49:25"
-  },
-  "medical_documents\\Pharmacology\\EMHJ_2019_25_01_47_57.pdf": {
-    "mtime": 1782980831.374017,
-    "size": 452412,
-    "chunks_count": 65,
-    "indexed_at": "2026-07-04 00:49:26"
-  },
-  "medical_documents\\Pharmacology\\immunization-routine-table2.pdf": {
-    "mtime": 1782980940.0425131,
-    "size": 218260,
-    "chunks_count": 89,
-    "indexed_at": "2026-07-04 00:49:26"
-  },
-  "medical_documents\\Pharmacology\\IRQ_D1_Asthma Guideline.pdf": {
-    "mtime": 1782980763.6170602,
-    "size": 784945,
-    "chunks_count": 67,
-    "indexed_at": "2026-07-04 00:49:27"
-  },
-  "medical_documents\\Pharmacology\\IRQ_D1_Hypertension-MOH.pdf": {
-    "mtime": 1782980741.368024,
-    "size": 1136451,
-    "chunks_count": 106,
-    "indexed_at": "2026-07-04 00:49:28"
-  },
-  "medical_documents\\Pharmacology\\update-28-covid-19-what-we-know.pdf": {
-    "mtime": 1782980913.6995158,
-    "size": 1764636,
-    "chunks_count": 18,
-    "indexed_at": "2026-07-04 00:49:28"
-  },
-  "medical_documents\\Pharmacology\\who_dmg.pdf": {
-    "mtime": 1782370730.050925,
-    "size": 259231,
-    "chunks_count": 117,
-    "indexed_at": "2026-07-04 00:49:28"
-  },
-  "medical_documents\\Respiratory\\7.-stroke-24-04-19.pdf": {
-    "mtime": 1782980859.1169846,
-    "size": 6897097,
-    "chunks_count": 18,
-    "indexed_at": "2026-07-04 00:49:29"
-  },
-  "medical_documents\\Respiratory\\9789241547260_eng.pdf": {
-    "mtime": 1782980794.5694146,
-    "size": 708658,
-    "chunks_count": 60,
-    "indexed_at": "2026-07-04 00:49:30"
-  },
-  "medical_documents\\Respiratory\\B156_(20)-en.pdf": {
-    "mtime": 1782980889.8676417,
-    "size": 210474,
-    "chunks_count": 21,
-    "indexed_at": "2026-07-04 00:49:30"
-  },
-  "medical_documents\\Respiratory\\EMHJ_2019_25_01_47_57.pdf": {
-    "mtime": 1782980831.374017,
-    "size": 452412,
-    "chunks_count": 65,
-    "indexed_at": "2026-07-04 00:49:31"
-  },
-  "medical_documents\\Respiratory\\immunization-routine-table2 - Copy.pdf": {
-    "mtime": 1782980940.0425131,
-    "size": 218260,
-    "chunks_count": 89,
-    "indexed_at": "2026-07-04 00:49:32"
+    "indexed_at": "2026-07-02 14:55:44"
   },
   "medical_documents\\Respiratory\\immunization-routine-table2.pdf": {
     "mtime": 1782981169.7435796,
     "size": 218260,
     "chunks_count": 89,
-    "indexed_at": "2026-07-04 00:49:32"
+    "indexed_at": "2026-07-02 14:57:49"
+  },
+  "medical_documents\\Cardiology\\7.-stroke-24-04-19.pdf": {
+    "mtime": 1782980859.1169846,
+    "size": 6897097,
+    "chunks_count": 18,
+    "indexed_at": "2026-07-02 15:12:55"
+  },
+  "medical_documents\\Cardiology\\9789241547260_eng.pdf": {
+    "mtime": 1782980794.5694146,
+    "size": 708658,
+    "chunks_count": 60,
+    "indexed_at": "2026-07-02 15:12:59"
+  },
+  "medical_documents\\Cardiology\\B156_(20)-en.pdf": {
+    "mtime": 1782980889.8676417,
+    "size": 210474,
+    "chunks_count": 21,
+    "indexed_at": "2026-07-02 15:13:00"
+  },
+  "medical_documents\\Cardiology\\EMHJ_2019_25_01_47_57.pdf": {
+    "mtime": 1782980831.374017,
+    "size": 452412,
+    "chunks_count": 65,
+    "indexed_at": "2026-07-02 15:13:04"
+  },
+  "medical_documents\\Cardiology\\immunization-routine-table2.pdf": {
+    "mtime": 1782980940.0425131,
+    "size": 218260,
+    "chunks_count": 89,
+    "indexed_at": "2026-07-02 15:13:08"
+  },
+  "medical_documents\\Cardiology\\IRQ_D1_Asthma Guideline.pdf": {
+    "mtime": 1782980763.6170602,
+    "size": 784945,
+    "chunks_count": 67,
+    "indexed_at": "2026-07-02 15:13:11"
+  },
+  "medical_documents\\Cardiology\\IRQ_D1_Hypertension-MOH.pdf": {
+    "mtime": 1782980741.368024,
+    "size": 1136451,
+    "chunks_count": 106,
+    "indexed_at": "2026-07-02 15:13:28"
+  },
+  "medical_documents\\Cardiology\\update-28-covid-19-what-we-know.pdf": {
+    "mtime": 1782980913.6995158,
+    "size": 1764636,
+    "chunks_count": 18,
+    "indexed_at": "2026-07-02 15:13:34"
+  },
+  "medical_documents\\Cardiology\\who_dmg.pdf": {
+    "mtime": 1782370730.050925,
+    "size": 259231,
+    "chunks_count": 117,
+    "indexed_at": "2026-07-02 15:13:54"
+  },
+  "medical_documents\\General\\7.-stroke-24-04-19.pdf": {
+    "mtime": 1782980859.1169846,
+    "size": 6897097,
+    "chunks_count": 18,
+    "indexed_at": "2026-07-02 15:14:00"
+  },
+  "medical_documents\\General\\9789241547260_eng.pdf": {
+    "mtime": 1782980794.5694146,
+    "size": 708658,
+    "chunks_count": 60,
+    "indexed_at": "2026-07-02 15:14:13"
+  },
+  "medical_documents\\General\\B156_(20)-en.pdf": {
+    "mtime": 1782980889.8676417,
+    "size": 210474,
+    "chunks_count": 21,
+    "indexed_at": "2026-07-02 15:14:18"
+  },
+  "medical_documents\\General\\EMHJ_2019_25_01_47_57.pdf": {
+    "mtime": 1782980831.374017,
+    "size": 452412,
+    "chunks_count": 65,
+    "indexed_at": "2026-07-02 15:14:31"
+  },
+  "medical_documents\\General\\immunization-routine-table2.pdf": {
+    "mtime": 1782980940.0425131,
+    "size": 218260,
+    "chunks_count": 89,
+    "indexed_at": "2026-07-02 15:14:48"
+  },
+  "medical_documents\\General\\IRQ_D1_Asthma Guideline.pdf": {
+    "mtime": 1782980763.6170602,
+    "size": 784945,
+    "chunks_count": 67,
+    "indexed_at": "2026-07-02 15:15:00"
+  },
+  "medical_documents\\General\\IRQ_D1_Hypertension-MOH.pdf": {
+    "mtime": 1782980741.368024,
+    "size": 1136451,
+    "chunks_count": 106,
+    "indexed_at": "2026-07-02 15:15:18"
+  },
+  "medical_documents\\General\\update-28-covid-19-what-we-know.pdf": {
+    "mtime": 1782980913.6995158,
+    "size": 1764636,
+    "chunks_count": 18,
+    "indexed_at": "2026-07-02 15:15:23"
+  },
+  "medical_documents\\General\\who_dmg - Copy.pdf": {
+    "mtime": 1782370730.050925,
+    "size": 259231,
+    "chunks_count": 117,
+    "indexed_at": "2026-07-02 15:15:42"
+  },
+  "medical_documents\\Neurology\\7.-stroke-24-04-19.pdf": {
+    "mtime": 1782980859.1169846,
+    "size": 6897097,
+    "chunks_count": 18,
+    "indexed_at": "2026-07-02 15:15:47"
+  },
+  "medical_documents\\Neurology\\9789241547260_eng.pdf": {
+    "mtime": 1782980794.5694146,
+    "size": 708658,
+    "chunks_count": 60,
+    "indexed_at": "2026-07-02 15:16:00"
+  },
+  "medical_documents\\Neurology\\B156_(20)-en.pdf": {
+    "mtime": 1782980889.8676417,
+    "size": 210474,
+    "chunks_count": 21,
+    "indexed_at": "2026-07-02 15:16:05"
+  },
+  "medical_documents\\Neurology\\EMHJ_2019_25_01_47_57.pdf": {
+    "mtime": 1782980831.374017,
+    "size": 452412,
+    "chunks_count": 65,
+    "indexed_at": "2026-07-02 15:16:09"
+  },
+  "medical_documents\\Neurology\\immunization-routine-table2.pdf": {
+    "mtime": 1782980940.0425131,
+    "size": 218260,
+    "chunks_count": 89,
+    "indexed_at": "2026-07-02 15:16:12"
+  },
+  "medical_documents\\Neurology\\IRQ_D1_Asthma Guideline.pdf": {
+    "mtime": 1782980763.6170602,
+    "size": 784945,
+    "chunks_count": 67,
+    "indexed_at": "2026-07-02 15:16:16"
+  },
+  "medical_documents\\Neurology\\IRQ_D1_Hypertension-MOH.pdf": {
+    "mtime": 1782980741.368024,
+    "size": 1136451,
+    "chunks_count": 106,
+    "indexed_at": "2026-07-02 15:16:27"
+  },
+  "medical_documents\\Neurology\\update-28-covid-19-what-we-know.pdf": {
+    "mtime": 1782980913.6995158,
+    "size": 1764636,
+    "chunks_count": 18,
+    "indexed_at": "2026-07-02 15:16:28"
+  },
+  "medical_documents\\Neurology\\who_dmg.pdf": {
+    "mtime": 1782370730.050925,
+    "size": 259231,
+    "chunks_count": 117,
+    "indexed_at": "2026-07-02 15:16:32"
+  },
+  "medical_documents\\Pharmacology\\7.-stroke-24-04-19.pdf": {
+    "mtime": 1782980859.1169846,
+    "size": 6897097,
+    "chunks_count": 18,
+    "indexed_at": "2026-07-02 15:16:34"
+  },
+  "medical_documents\\Pharmacology\\9789241547260_eng.pdf": {
+    "mtime": 1782980794.5694146,
+    "size": 708658,
+    "chunks_count": 60,
+    "indexed_at": "2026-07-02 15:16:37"
+  },
+  "medical_documents\\Pharmacology\\B156_(20)-en.pdf": {
+    "mtime": 1782980889.8676417,
+    "size": 210474,
+    "chunks_count": 21,
+    "indexed_at": "2026-07-02 15:16:38"
+  },
+  "medical_documents\\Pharmacology\\EMHJ_2019_25_01_47_57.pdf": {
+    "mtime": 1782980831.374017,
+    "size": 452412,
+    "chunks_count": 65,
+    "indexed_at": "2026-07-02 15:16:42"
+  },
+  "medical_documents\\Pharmacology\\immunization-routine-table2.pdf": {
+    "mtime": 1782980940.0425131,
+    "size": 218260,
+    "chunks_count": 89,
+    "indexed_at": "2026-07-02 15:16:45"
+  },
+  "medical_documents\\Pharmacology\\IRQ_D1_Asthma Guideline.pdf": {
+    "mtime": 1782980763.6170602,
+    "size": 784945,
+    "chunks_count": 67,
+    "indexed_at": "2026-07-02 15:16:48"
+  },
+  "medical_documents\\Pharmacology\\IRQ_D1_Hypertension-MOH.pdf": {
+    "mtime": 1782980741.368024,
+    "size": 1136451,
+    "chunks_count": 106,
+    "indexed_at": "2026-07-02 15:16:53"
+  },
+  "medical_documents\\Pharmacology\\update-28-covid-19-what-we-know.pdf": {
+    "mtime": 1782980913.6995158,
+    "size": 1764636,
+    "chunks_count": 18,
+    "indexed_at": "2026-07-02 15:16:54"
+  },
+  "medical_documents\\Pharmacology\\who_dmg.pdf": {
+    "mtime": 1782370730.050925,
+    "size": 259231,
+    "chunks_count": 117,
+    "indexed_at": "2026-07-02 15:16:58"
+  },
+  "medical_documents\\Respiratory\\7.-stroke-24-04-19.pdf": {
+    "mtime": 1782980859.1169846,
+    "size": 6897097,
+    "chunks_count": 18,
+    "indexed_at": "2026-07-02 15:16:59"
+  },
+  "medical_documents\\Respiratory\\9789241547260_eng.pdf": {
+    "mtime": 1782980794.5694146,
+    "size": 708658,
+    "chunks_count": 60,
+    "indexed_at": "2026-07-02 15:17:03"
+  },
+  "medical_documents\\Respiratory\\B156_(20)-en.pdf": {
+    "mtime": 1782980889.8676417,
+    "size": 210474,
+    "chunks_count": 21,
+    "indexed_at": "2026-07-02 15:17:04"
+  },
+  "medical_documents\\Respiratory\\EMHJ_2019_25_01_47_57.pdf": {
+    "mtime": 1782980831.374017,
+    "size": 452412,
+    "chunks_count": 65,
+    "indexed_at": "2026-07-02 15:17:07"
+  },
+  "medical_documents\\Respiratory\\immunization-routine-table2 - Copy.pdf": {
+    "mtime": 1782980940.0425131,
+    "size": 218260,
+    "chunks_count": 89,
+    "indexed_at": "2026-07-02 15:17:11"
   },
   "medical_documents\\Respiratory\\IRQ_D1_Asthma Guideline.pdf": {
     "mtime": 1782980763.6170602,
     "size": 784945,
     "chunks_count": 67,
-    "indexed_at": "2026-07-04 00:49:33"
+    "indexed_at": "2026-07-02 15:17:14"
   },
   "medical_documents\\Respiratory\\IRQ_D1_Hypertension-MOH.pdf": {
     "mtime": 1782980741.368024,
     "size": 1136451,
     "chunks_count": 106,
-    "indexed_at": "2026-07-04 00:49:34"
+    "indexed_at": "2026-07-02 15:17:18"
   },
   "medical_documents\\Respiratory\\update-28-covid-19-what-we-know.pdf": {
     "mtime": 1782980913.6995158,
     "size": 1764636,
     "chunks_count": 18,
-    "indexed_at": "2026-07-04 00:49:34"
+    "indexed_at": "2026-07-02 15:17:19"
   },
   "medical_documents\\Respiratory\\who_dmg.pdf": {
     "mtime": 1782370730.050925,
     "size": 259231,
     "chunks_count": 117,
-    "indexed_at": "2026-07-04 00:49:34"
+    "indexed_at": "2026-07-02 15:17:23"
   }
 }
