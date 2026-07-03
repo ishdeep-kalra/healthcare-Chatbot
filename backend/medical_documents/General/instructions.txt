@@ -1,0 +1,2 @@
+Place general medical documents and PDFs here.
+These files will be parsed, chunked, and indexed into the ChromaDB vector store.

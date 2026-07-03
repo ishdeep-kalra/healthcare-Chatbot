@@ -1,0 +1,2 @@
+Place PDF files related to Cardiology here.
+These files will be parsed, chunked, and indexed into the ChromaDB vector store.
