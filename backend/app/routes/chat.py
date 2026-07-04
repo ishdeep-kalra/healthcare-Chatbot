@@ -45,7 +45,7 @@ async def retrieve_context(
             "status": "success",
             "safety_alert": False,
             "is_emergency": False
-        }
+        } 
         
     except Exception as e:
         logger.error(f"Retrieval service failed for query '{query}': {str(e)}")
