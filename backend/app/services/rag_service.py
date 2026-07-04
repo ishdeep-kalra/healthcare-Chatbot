@@ -193,7 +193,7 @@ class RAGService:
                 f"User Question: {query}\n\n"
                 f"Format your response professionally in Markdown.\n"
                 f"CRITICAL CITATION RULE: Do NOT include any inline citations, document tags, brackets, or references (such as [Document 1], [Document 2], [1], or source file names) within the text of your response. The answer must read naturally and fluidly as a direct explanation. All source information is displayed separately by the user interface.\n"
-                f"If the context does not contain the answer, reply exactly: 'I could not find relevant information in the uploaded medical documents.'\n\n"
+               f"Use the retrieved context whenever it is relevant. If the context only partially answers the question or is insufficient, use your general medical knowledge to provide a helpful and accurate answer. Clearly distinguish information supported by the uploaded documents from information based on general medical knowledge. Never invent facts or citations.\n\n"
                 f"Answer:"
             )
             
@@ -211,14 +211,7 @@ class RAGService:
             logger.info("===== ANSWER =====")
             logger.info(answer)
             
-            # If the model explicitly outputs that it couldn't find the answer, respect that
-            if "i could not find relevant information" in answer.lower():
-                logger.info("Gemini indicated the context was insufficient to answer.")
-                return {
-                    "answer": "I could not find relevant information in the uploaded medical documents.",
-                    "sources": [],
-                    "status": "no_context"
-                }
+           
 
             # 5. Apply safety disclaimer filters to the generated answer
             final_answer = guardrail.enforce_output_safety(answer)
