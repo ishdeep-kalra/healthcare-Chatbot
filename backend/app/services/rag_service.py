@@ -211,7 +211,7 @@ Provide a concise explanation.
 
 End with a brief note encouraging consultation with a qualified healthcare professional for diagnosis or treatment decisions.\n"
                 f"CRITICAL CITATION RULE: Do NOT include any inline citations, document tags, brackets, or references (such as [Document 1], [Document 2], [1], or source file names) within the text of your response. The answer must read naturally and fluidly as a direct explanation. All source information is displayed separately by the user interface.\n"
-               f"Use the retrieved context whenever it is relevant. If the context only partially answers the question or is insufficient, use your general medical knowledge to provide a helpful and accurate answer. Clearly distinguish information supported by the uploaded documents from information based on general medical knowledge. Never invent facts or citations.\n\n"
+               f"V\n\n"
                 f"Answer:"
             )
             
