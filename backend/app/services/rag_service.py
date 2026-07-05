@@ -248,8 +248,17 @@ for phrase in replacements:
            
 
             # 5. Apply safety disclaimer filters to the generated answer
-            final_answer = guardrail.enforce_output_safety(answer)
-            
+           final_answer = guardrail.enforce_output_safety(answer)
+
+for phrase in [
+    "Based on the provided documents,",
+    "Based on the uploaded documents,",
+    "The provided documents discuss",
+    "The uploaded documents discuss",
+    "According to the provided documents,",
+    "According to the uploaded documents,",
+]:
+    final_answer = final_answer.replace(phrase, "")
             # 6. Extract source summaries for citation mapping
             sources = []
             for doc in retrieved_docs:
