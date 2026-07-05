@@ -225,6 +225,19 @@ End with a brief note encouraging consultation with a qualified healthcare profe
             logger.info(llm_response)
 
             answer = llm_response.content.strip()
+            replacements = [
+    "Based on the provided documents, ",
+    "Based on the uploaded documents, ",
+    "The provided documents discuss ",
+    "The uploaded documents discuss ",
+    "According to the provided documents, ",
+    "According to the uploaded documents, ",
+]
+
+for phrase in replacements:
+    if answer.startswith(phrase):
+        answer = answer.replace(phrase, "", 1)
+        break
 
             logger.info("===== ANSWER =====")
             logger.info(answer)
