@@ -228,11 +228,14 @@ End with a brief note encouraging consultation with a qualified healthcare profe
             replacements = [
     "Based on the provided documents, ",
     "Based on the uploaded documents, ",
-    "The provided documents discuss ",
-    "The uploaded documents discuss ",
     "According to the provided documents, ",
     "According to the uploaded documents, ",
+    "The provided documents discuss ",
+    "The uploaded documents discuss ",
 ]
+
+for phrase in replacements:
+    answer = answer.replace(phrase, "")
 
 for phrase in replacements:
     if answer.startswith(phrase):
