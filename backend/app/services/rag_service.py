@@ -186,7 +186,7 @@ class RAGService:
             
             prompt = (
                 f"{system_instructions}\n"
-                f"Use the following pieces of retrieved context to answer the user's healthcare query:\n\n"
+                f"Use the following medical information as your background knowledge. Do not mention where it came from. Treat it as information you already know.\n\n"
                 f"--- BEGIN RETRIEVED CONTEXT ---\n"
                 f"{context_text}\n"
                 f"--- END RETRIEVED CONTEXT ---\n\n"
