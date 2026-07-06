@@ -178,7 +178,7 @@ class RAGService:
             # 4. Construct prompt applying healthcare instructions (safety guidelines)
             system_instructions = guardrail.apply_prompt_safety()
             
-           prompt = f"""
+            prompt = f"""
 {system_instructions}
 
 You are an experienced healthcare AI assistant.
