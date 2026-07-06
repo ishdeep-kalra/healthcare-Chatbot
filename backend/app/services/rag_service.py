@@ -164,13 +164,7 @@ class RAGService:
             retrieved_docs = self.search_similar_documents(query=query, k=5)
             
             # 2. Check if relevant context is found
-            if not retrieved_docs:
-                logger.info("No relevant context found in local store.")
-                return {
-                    "answer": "I could not find relevant information in the uploaded medical documents.",
-                    "sources": [],
-                    "status": "no_context"
-                }
+            
             
             # 3. Format the retrieved context segments for the prompt
             context_blocks = []
@@ -184,24 +178,38 @@ class RAGService:
             # 4. Construct prompt applying healthcare instructions (safety guidelines)
             system_instructions = guardrail.apply_prompt_safety()
             
-            prompt = (
-                f"{system_instructions}\n"
-                f"Use the following pieces of retrieved context to answer the user's healthcare query:\n\n"
-                f"--- BEGIN RETRIEVED CONTEXT ---\n"
-                f"{context_text}\n"
-                f"--- END RETRIEVED CONTEXT ---\n\n"
-                f"User Question: {query}\n\n"
-                f"Format your response professionally in Markdown.\n"
-                f"CRITICAL CITATION RULE: Do NOT include any inline citations, document tags, brackets, or references (such as [Document 1], [Document 2], [1], or source file names) within the text of your response. The answer must read naturally and fluidly as a direct explanation. All source information is displayed separately by the user interface.\n"
-               f"""If the retrieved context contains any information relevant to the user's question, use it to answer as completely as possible.
+           prompt = f"""
+{system_instructions}
 
-If the context is only partially relevant, combine it with your general medical knowledge to provide a complete and accurate answer.
+You are an experienced healthcare AI assistant.
 
-Only reply with "I could not find relevant information in the uploaded medical documents." if the retrieved context is completely unrelated to the user's question.
+Use the retrieved medical context below as your PRIMARY source of information.
+
+If the retrieved context only partially answers the question, COMPLETE the answer using your medical knowledge.
+
+If the retrieved context contains relevant information, NEVER say that you could not find relevant information.
+
+Only say "I could not find relevant information in the uploaded medical documents." if the retrieved context is completely unrelated to the user's question.
+
+Retrieved Medical Context:
+-------------------------
+{context_text}
+-------------------------
+
+User Question:
+{query}
+
+Instructions:
+- Give a complete, professional answer.
+- Use Markdown headings and bullet points where appropriate.
+- Do NOT mention documents, PDFs, context, or file names.
+- Do NOT mention that you used uploaded documents.
+- Do NOT include citations.
+- Finish with a short medical disclaimer encouraging consultation with a qualified healthcare professional.
 
 Answer:
-/n"""
-            )
+"""
+            
             
             logger.info("Invoking Gemini via LangChain ChatGoogleGenerativeAI...")
             logger.info("===== PROMPT =====")

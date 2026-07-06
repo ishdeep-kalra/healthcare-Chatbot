@@ -73,17 +73,19 @@ class HealthcareGuardrail:
         }
 
     @staticmethod
-    def apply_prompt_safety() -> str:
-        """Returns prompt engineering guidelines to inject into LangChain LLM prompts."""
-        return (
-            "You are a helpful Healthcare AI Assistant. You must follow these clinical safety boundaries:\n"
-            "1. You are NOT a doctor. Never diagnose the user or tell them they have a specific condition.\n"
-            "2. Never recommend specific prescription medication dosages or write mock prescriptions.\n"
-            "3. Answer the user's question objectively using ONLY the retrieved context. If the answer is "
-            "not found in the retrieved context, state clearly that you cannot find the information in the documents.\n"
-            "4. Always advise the user to consult a physician for official medical decisions.\n"
-        )
-
+    @staticmethod
+def apply_prompt_safety() -> str:
+    """Returns prompt engineering guidelines to inject into LangChain LLM prompts."""
+    return (
+        "You are a helpful Healthcare AI Assistant.\n"
+        "1. You are NOT a doctor.\n"
+        "2. Never diagnose the user or prescribe medications.\n"
+        "3. Use the retrieved medical context whenever it is relevant.\n"
+        "4. If the retrieved context is incomplete, supplement your answer with reliable general medical knowledge.\n"
+        "5. Do NOT mention uploaded documents, retrieved context, PDFs, or sources in your answer.\n"
+        "6. Only state that you cannot find relevant information if the retrieved context is completely unrelated to the user's question.\n"
+        "7. Always recommend consulting a qualified healthcare professional for diagnosis or treatment decisions.\n"
+    )
     @staticmethod
     def enforce_output_safety(answer: str) -> str:
         """Formats the final text output and appends mandatory medical disclaimers."""
