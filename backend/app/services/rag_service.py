@@ -193,7 +193,9 @@ class RAGService:
                 f"User Question: {query}\n\n"
                 f"Format your response professionally in Markdown.\n"
                 f"CRITICAL CITATION RULE: Do NOT include any inline citations, document tags, brackets, or references (such as [Document 1], [Document 2], [1], or source file names) within the text of your response. The answer must read naturally and fluidly as a direct explanation. All source information is displayed separately by the user interface.\n"
-                f"If the context does not contain the answer, reply exactly: 'I could not find relevant information in the uploaded medical documents.'\n\n"
+                f"If the retrieved context contains any information that is relevant to the user's question, use it to answer as completely as possible.
+If the context is only partially relevant, combine it with your general medical knowledge and clearly distinguish between information supported by the context and general medical knowledge.
+Only reply "I could not find relevant information in the uploaded medical documents." if the retrieved context is completely unrelated to the user's question.'\n\n"
                 f"Answer:"
             )
             
@@ -212,13 +214,13 @@ class RAGService:
             logger.info(answer)
             
             # If the model explicitly outputs that it couldn't find the answer, respect that
-            if "i could not find relevant information" in answer.lower():
-                logger.info("Gemini indicated the context was insufficient to answer.")
-                return {
-                    "answer": "I could not find relevant information in the uploaded medical documents.",
-                    "sources": [],
-                    "status": "no_context"
-                }
+            # if "i could not find relevant information" in answer.lower():
+            #     logger.info("Gemini indicated the context was insufficient to answer.")
+            #     return {
+            #         "answer": "I could not find relevant information in the uploaded medical documents.",
+            #         "sources": [],
+            #         "status": "no_context"
+            #     }
 
             # 5. Apply safety disclaimer filters to the generated answer
             final_answer = guardrail.enforce_output_safety(answer)
