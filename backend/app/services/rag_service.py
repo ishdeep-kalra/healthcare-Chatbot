@@ -193,10 +193,14 @@ class RAGService:
                 f"User Question: {query}\n\n"
                 f"Format your response professionally in Markdown.\n"
                 f"CRITICAL CITATION RULE: Do NOT include any inline citations, document tags, brackets, or references (such as [Document 1], [Document 2], [1], or source file names) within the text of your response. The answer must read naturally and fluidly as a direct explanation. All source information is displayed separately by the user interface.\n"
-                f"If the retrieved context contains any information that is relevant to the user's question, use it to answer as completely as possible.
-If the context is only partially relevant, combine it with your general medical knowledge and clearly distinguish between information supported by the context and general medical knowledge.
-Only reply "I could not find relevant information in the uploaded medical documents." if the retrieved context is completely unrelated to the user's question.'\n\n"
-                f"Answer:"
+               f"""If the retrieved context contains any information relevant to the user's question, use it to answer as completely as possible.
+
+If the context is only partially relevant, combine it with your general medical knowledge to provide a complete and accurate answer.
+
+Only reply with "I could not find relevant information in the uploaded medical documents." if the retrieved context is completely unrelated to the user's question.
+
+Answer:
+/n"""
             )
             
             logger.info("Invoking Gemini via LangChain ChatGoogleGenerativeAI...")
