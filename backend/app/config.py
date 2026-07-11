@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "info"
     CORS_ORIGINS: Union[str, List[str]] = ["*"]
     GEMINI_API_KEY: str = ""
+    LLM_PROVIDER: str = "gemini"
+    OLLAMA_MODEL: str = "llama3.2"
     CHROMA_PERSIST_DIR: str = "../data/chromadb"
 
     # Configure Pydantic to read from backend/.env file

@@ -4,6 +4,7 @@ import math
 import string
 from typing import List, Dict, Any
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_ollama import ChatOllama
 from app.config import settings
 from app.services.logger import logger
 from app.services.guardrail import guardrail
@@ -14,17 +15,28 @@ class RAGService:
         self.collection_name = "medical_documents"
 
     @property
-    def llm(self) -> ChatGoogleGenerativeAI:
-        """Lazy-loaded Gemini client via LangChain."""
+    def llm(self):
+        """Lazy-loaded LLM client (Gemini or Ollama)."""
         if self._llm is None:
-            logger.info("Initializing ChatGoogleGenerativeAI model: gemini-2.5-flash...")
-            self._llm = ChatGoogleGenerativeAI(
-                model="gemini-2.5-flash",
-                google_api_key=settings.GEMINI_API_KEY,
-                temperature=0.2,
-                max_tokens=1024
-            )
-            logger.info("Gemini LLM client initialized successfully.")
+
+            if settings.LLM_PROVIDER.lower() == "ollama":
+                logger.info(f"Initializing Ollama model: {settings.OLLAMA_MODEL}...")
+                self._llm = ChatOllama(
+                    model=settings.OLLAMA_MODEL,
+                    temperature=0.2,
+                )
+                logger.info("Ollama LLM initialized successfully.")
+
+            else:
+                logger.info("Initializing ChatGoogleGenerativeAI model: gemini-2.5-flash...")
+                self._llm = ChatGoogleGenerativeAI(
+                    model="gemini-2.5-flash",
+                    google_api_key=settings.GEMINI_API_KEY,
+                    temperature=0.2,
+                    max_tokens=1024,
+                )
+                logger.info("Gemini LLM initialized successfully.")
+
         return self._llm
 
     def _get_storage_path(self) -> str:
