@@ -4,7 +4,7 @@ import math
 import string
 import asyncio
 import re
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple
 from langchain_google_genai import ChatGoogleGenerativeAI
 try:
     from langchain_ollama import ChatOllama
@@ -16,6 +16,76 @@ from app.config import settings
 from app.services.logger import logger
 from app.services.guardrail import guardrail
 
+
+# ---------------------------------------------------------------------------
+# Shared system-prompt building blocks
+# ---------------------------------------------------------------------------
+
+_SAFETY_BOUNDARY = (
+    "SAFETY RULES (non-negotiable):\n"
+    "- Never diagnose a patient or confirm a specific disease for the user.\n"
+    "- Never prescribe medication, recommend specific drug names, or suggest dosages.\n"
+    "- Never fabricate clinical data, statistics, or research citations.\n"
+    "- If the question has emergency signs (chest pain, difficulty breathing, etc.), "
+    "immediately tell the user to call emergency services.\n\n"
+)
+
+_FORMAT_RULES = (
+    "FORMAT RULES:\n"
+    "- Always respond in Markdown.\n"
+    "- Use ## headings to structure long answers.\n"
+    "- Use bullet points ( - ) for lists of symptoms, causes, or tips.\n"
+    "- Use **bold** for important medical terms on first use.\n"
+    "- Keep language clear and accessible - explain jargon in plain English.\n"
+    "- Do NOT start the response with a disclaimer or warning.\n"
+    "- Do NOT add a generic disclaimer in the middle of the answer.\n"
+    "- End every response with ONE natural, specific follow-up question that is "
+    "directly relevant to what the user just asked. Never use generic questions "
+    "like 'Is there anything else?' or 'Do you have more questions?'.\n\n"
+)
+
+_CASUAL_SYSTEM = (
+    "You are MedAI, a warm and friendly Healthcare AI Assistant.\n\n"
+    "TASK: Respond naturally to the user's greeting or casual message.\n\n"
+    "RULES:\n"
+    "- Use a friendly, conversational tone.\n"
+    "- Keep the reply short (2-4 sentences max).\n"
+    "- Briefly mention that you can help with medical questions or explain uploaded reports.\n"
+    "- Do NOT use medical jargon or give unsolicited health advice.\n"
+    "- Do NOT add disclaimers.\n"
+    "- End with a natural, inviting follow-up question (e.g. 'What health topic can I help you with today?').\n"
+)
+
+_GENERAL_MEDICAL_SYSTEM = (
+    "You are MedAI, an expert Healthcare AI Assistant with deep medical knowledge.\n\n"
+    + _SAFETY_BOUNDARY
+    + _FORMAT_RULES
+    + "TASK: Answer the user's medical question accurately, in depth, and in plain language.\n\n"
+    "GUIDELINES:\n"
+    "- Explain the concept clearly, as if talking to an intelligent patient who is NOT a doctor.\n"
+    "- Structure your answer with sections where appropriate: e.g. ## What is it?, "
+    "## Causes, ## Symptoms, ## Complications, ## When to see a doctor.\n"
+    "- Use real-world examples or analogies to make complex ideas easy to understand.\n"
+    "- If comparing two things (e.g. Type 1 vs Type 2), use a comparison table in Markdown.\n"
+    "- Do NOT refer to any uploaded documents, PDFs, context, or retrieved passages.\n"
+    "- Do NOT start with 'I am an AI' or any robotic preamble.\n"
+)
+
+_DOCUMENT_SYSTEM = (
+    "You are MedAI, an expert Healthcare AI Assistant reviewing medical records.\n\n"
+    + _SAFETY_BOUNDARY
+    + _FORMAT_RULES
+    + "TASK: Answer the user's question using the medical document context provided below.\n\n"
+    "CRITICAL RULES FOR DOCUMENT ANSWERS:\n"
+    "- Integrate the retrieved context seamlessly into your answer as if you are directly "
+    "reviewing the patient's records. Never say 'the document says', 'according to the PDF', "
+    "'the provided text', 'the context states', 'based on the uploaded file', or any similar phrase.\n"
+    "- If the retrieved context is not relevant to the question, rely on general medical knowledge "
+    "and do NOT invent document content.\n"
+    "- Distinguish clearly between what is clinically established and what requires a doctor's judgment.\n"
+)
+
+
 class RAGService:
     def __init__(self):
         self._llm = None
@@ -23,11 +93,14 @@ class RAGService:
         self._cached_chunks = None
         self._answer_cache = {}
 
+    # ------------------------------------------------------------------
+    # LLM lazy-loader
+    # ------------------------------------------------------------------
+
     @property
     def llm(self):
         """Lazy-loaded LLM client (Gemini or Ollama)."""
         if self._llm is None:
-
             if settings.LLM_PROVIDER.lower() == "ollama":
                 if not _OLLAMA_AVAILABLE:
                     logger.warning("langchain-ollama not installed; falling back to Gemini.")
@@ -35,25 +108,28 @@ class RAGService:
                     logger.info(f"Initializing Ollama model: {settings.OLLAMA_MODEL}...")
                     self._llm = ChatOllama(
                         model=settings.OLLAMA_MODEL,
-                        temperature=0.2,
+                        temperature=0.3,
                     )
                     logger.info("Ollama LLM initialized successfully.")
                     return self._llm
 
-            else:
-                logger.info("Initializing ChatGoogleGenerativeAI model: gemini-2.5-flash...")
-                self._llm = ChatGoogleGenerativeAI(
-                    model="gemini-2.5-flash",
-                    google_api_key=settings.GEMINI_API_KEY,
-                    temperature=0.2,
-                    max_tokens=1024,
-                )
-                logger.info("Gemini LLM initialized successfully.")
+            # Default: Gemini
+            logger.info("Initializing ChatGoogleGenerativeAI model: gemini-2.5-flash...")
+            self._llm = ChatGoogleGenerativeAI(
+                model="gemini-2.5-flash",
+                google_api_key=settings.GEMINI_API_KEY,
+                temperature=0.3,
+                max_tokens=2048,
+            )
+            logger.info("Gemini LLM initialized successfully.")
 
         return self._llm
 
+    # ------------------------------------------------------------------
+    # JSON chunk store helpers
+    # ------------------------------------------------------------------
+
     def _get_storage_path(self) -> str:
-        # Save JSON chunks in the parent directory of CHROMA_PERSIST_DIR (which is the data/ folder)
         persist_dir = os.path.abspath(settings.CHROMA_PERSIST_DIR)
         parent_dir = os.path.dirname(persist_dir)
         os.makedirs(parent_dir, exist_ok=True)
@@ -92,116 +168,145 @@ class RAGService:
         try:
             logger.info(f"Adding {len(chunks)} chunks to local JSON store...")
             existing_chunks = self._load_chunks()
-            
-            # Map existing chunks by ID to avoid duplicates
+
             chunk_dict = {c["id"]: c for c in existing_chunks}
             for chunk in chunks:
                 chunk_dict[chunk["id"]] = chunk
-                
+
             updated_chunks = list(chunk_dict.values())
             self._save_chunks(updated_chunks)
-            
-            # Update the in-memory cache
+
             self._cached_chunks = updated_chunks
-            
-            # Clear answer cache since new context is added
             self._answer_cache.clear()
-            
+
             logger.info("Successfully persisted document chunks locally and cleared answer cache.")
         except Exception as e:
             logger.error(f"Failed to save chunks locally: {str(e)}")
             raise e
 
+    # ------------------------------------------------------------------
+    # TF-IDF + Cosine Similarity retrieval
+    # ------------------------------------------------------------------
+
     def _tokenize(self, text: str) -> List[str]:
-        # Lowercase, remove punctuation, and split by whitespace
+        """Tokenize text: lowercase, remove punctuation, remove stopwords."""
         text = text.lower()
         translator = str.maketrans("", "", string.punctuation)
         text = text.translate(translator)
-        return text.split()
+        tokens = text.split()
+        stopwords = {
+            "the", "and", "or", "a", "an", "of", "in", "on", "for", "to",
+            "with", "is", "are", "was", "were", "be", "been", "has",
+            "have", "had", "by", "as", "at", "from", "it", "its",
+            "that", "this", "these", "those", "not", "but", "if",
+        }
+        return [t for t in tokens if t not in stopwords and len(t) > 1]
 
     def search_similar_documents(self, query: str, k: int = 4) -> List[Dict[str, Any]]:
-        """Queries the local JSON store using token matching & TF-IDF score."""
+        """Retrieve top-k document chunks using TF-IDF cosine similarity."""
         try:
             logger.info(f"Performing search for query: '{query}' (k={k})")
             chunks = self._load_chunks()
-            
+
             query_tokens = self._tokenize(query)
             if not query_tokens or not chunks:
                 logger.info("Empty query tokens or empty chunks store.")
                 return []
 
-            # Calculate Document Frequency (DF) for each query token
-            df = {token: 0 for token in query_tokens}
+            # --- Document Frequency (DF) ---
+            df: Dict[str, int] = {token: 0 for token in set(query_tokens)}
             for chunk in chunks:
                 content_lower = chunk["page_content"].lower()
-                for token in query_tokens:
+                for token in df:
                     if token in content_lower:
                         df[token] += 1
 
             N = len(chunks)
-            # Calculate IDF for each query token
-            idf = {}
-            for token, count in df.items():
-                idf[token] = math.log((N + 1) / (count + 1)) + 1.0
 
-            scored_chunks = []
+            # --- Inverse Document Frequency (IDF) ---
+            idf: Dict[str, float] = {
+                token: math.log((N + 1) / (count + 1)) + 1.0
+                for token, count in df.items()
+            }
+
+            # --- TF-IDF vector for the query ---
+            query_vec: Dict[str, float] = {}
+            for token in set(query_tokens):
+                tf = query_tokens.count(token) / len(query_tokens)
+                query_vec[token] = tf * idf.get(token, 0.0)
+
+            mag_q = math.sqrt(sum(v * v for v in query_vec.values()))
+            if mag_q == 0:
+                return []
+
+            # --- Score each chunk ---
+            scored: List[Tuple[Dict[str, Any], float]] = []
             for chunk in chunks:
-                content = chunk["page_content"]
-                tokens = self._tokenize(content)
-                if not tokens:
+                doc_tokens = self._tokenize(chunk["page_content"])
+                if not doc_tokens:
                     continue
 
-                # Term Frequency (TF) of query tokens in the chunk
-                tf = {}
-                for t in tokens:
-                    if t in query_tokens:
-                        tf[t] = tf.get(t, 0) + 1
+                doc_vec: Dict[str, float] = {}
+                for token in set(doc_tokens):
+                    tf = doc_tokens.count(token) / len(doc_tokens)
+                    doc_vec[token] = tf * idf.get(token, 0.0)
 
-                # Calculate cumulative TF-IDF score for this chunk
-                score = 0.0
-                for token in query_tokens:
-                    if token in tf:
-                        term_tf = tf[token] / len(tokens)
-                        score += term_tf * idf[token]
+                mag_d = math.sqrt(sum(v * v for v in doc_vec.values()))
+                if mag_d == 0:
+                    continue
 
-                if score > 0.0:
-                    scored_chunks.append((chunk, score))
+                dot = sum(
+                    query_vec.get(t, 0.0) * doc_vec.get(t, 0.0)
+                    for t in set(query_vec) & set(doc_vec)
+                )
+                cosine_sim = dot / (mag_q * mag_d)
+                if cosine_sim > 0.0:
+                    scored.append((chunk, cosine_sim))
 
-            # Sort by score descending
-            scored_chunks.sort(key=lambda x: x[1], reverse=True)
+            scored.sort(key=lambda x: x[1], reverse=True)
 
-            results = []
-            for chunk, score in scored_chunks[:k]:
-                results.append({
+            results = [
+                {
                     "page_content": chunk["page_content"],
                     "metadata": chunk["metadata"],
-                    "relevance_score": float(score)
-                })
+                    "relevance_score": float(score),
+                }
+                for chunk, score in scored[:k]
+            ]
 
             logger.info(f"Retrieved {len(results)} matches from local JSON store.")
             return results
+
         except Exception as e:
             logger.error(f"Error during local document search: {str(e)}")
             raise e
+
+    # ------------------------------------------------------------------
+    # Intent classification
+    # ------------------------------------------------------------------
 
     def _normalize_query(self, query: str) -> str:
         return query.strip().lower().rstrip("?").strip()
 
     def classify_intent(self, query: str) -> str:
-        """Classifies the query intent into CASUAL_CHAT, DOCUMENT_QUERY, or GENERAL_MEDICAL."""
+        """Classifies the query intent: CASUAL_CHAT | DOCUMENT_QUERY | GENERAL_MEDICAL."""
         cleaned = query.strip().lower()
-        
-        # 1. CASUAL_CHAT Keywords (regex)
+
+        # 1. CASUAL_CHAT
         casual_patterns = [
-            r"^\s*hi\s*$", r"^\s*hello\b", r"^\s*hey\b", r"good\s*morning", r"good\s*afternoon", r"good\s*evening",
-            r"greetings", r"thank\s*s?", r"thank\s*you", r"who\s*are\s*you", r"what\s*can\s*you\s*do",
-            r"what\s*is\s*your\s*name", r"how\s*are\s*you", r"how's\s*it\s*going", r"what's\s*up", r"help", r"gday", r"welcome"
+            r"^\s*hi\s*$", r"^\s*hello\b", r"^\s*hey\b",
+            r"good\s*morning", r"good\s*afternoon", r"good\s*evening",
+            r"greetings", r"thank\s*s?", r"thank\s*you",
+            r"who\s*are\s*you", r"what\s*can\s*you\s*do",
+            r"what\s*is\s*your\s*name", r"how\s*are\s*you",
+            r"how's\s*it\s*going", r"what's\s*up",
+            r"^\s*help\s*$", r"gday", r"welcome",
         ]
         for pattern in casual_patterns:
             if re.search(pattern, cleaned):
                 return "CASUAL_CHAT"
-                
-        # 2. DOCUMENT_QUERY Keywords (regex)
+
+        # 2. DOCUMENT_QUERY
         document_patterns = [
             r"\bmy\s*(report|mri|blood|scan|prescription|file|pdf|document|test|ct|results|record|chart)\b",
             r"\bthis\s*(uploaded|prescription|report|pdf|document|file|mri|ct|scan)\b",
@@ -210,17 +315,23 @@ class RAGService:
             r"in\s*my\s*(report|mri|blood|scan|prescription|file|pdf|document|test|ct)",
             r"\bblood\s*test\s*indicate\b",
             r"\babnormalities\s*in\s*my\b",
-            r"uploaded\s*report", r"uploaded\s*prescription", r"uploaded\s*mri", r"uploaded\s*scan", r"uploaded\s*document", r"uploaded\s*pdf"
+            r"uploaded\s*report", r"uploaded\s*prescription",
+            r"uploaded\s*mri", r"uploaded\s*scan",
+            r"uploaded\s*document", r"uploaded\s*pdf",
         ]
         for pattern in document_patterns:
             if re.search(pattern, cleaned):
                 return "DOCUMENT_QUERY"
-                
-        # 3. Default to GENERAL_MEDICAL
+
+        # 3. Default
         return "GENERAL_MEDICAL"
 
+    # ------------------------------------------------------------------
+    # LLM streaming
+    # ------------------------------------------------------------------
+
     async def _stream_llm(self, prompt: str):
-        """Streams the LLM response token-by-token with friendly error handling (Feature 10)."""
+        """Stream LLM response token-by-token."""
         try:
             async for chunk in self.llm.astream(prompt):
                 if chunk and chunk.content:
@@ -228,229 +339,177 @@ class RAGService:
         except Exception as e:
             logger.error(f"Error during LLM streaming: {str(e)}")
             error_msg = str(e)
-            if settings.LLM_PROVIDER.lower() == "ollama" and ("connect" in error_msg.lower() or "connection" in error_msg.lower() or "refused" in error_msg.lower()):
+            if settings.LLM_PROVIDER.lower() == "ollama" and (
+                "connect" in error_msg.lower() or "refused" in error_msg.lower()
+            ):
                 yield (
-                    "\n\n🖥️ **Ollama Service Unavailable**\n\n"
+                    "\n\n-- **Ollama Service Unavailable**\n\n"
                     "I was unable to connect to the local Ollama service. "
-                    "Please ensure that the Ollama app is running locally on your computer "
-                    "and that the model is loaded, or switch the LLM_PROVIDER in the settings."
+                    "Please ensure Ollama is running and the model is loaded."
                 )
             else:
                 yield (
-                    "\n\n⚠️ **Inference Error**\n\n"
-                    "An error occurred while generating the response from the LLM. "
-                    "Please check the backend log files for details."
+                    "\n\n-- **Inference Error**\n\n"
+                    "An error occurred while generating the response. "
+                    "Please check the backend logs for details."
                 )
 
+    # ------------------------------------------------------------------
+    # Streaming answer generation
+    # ------------------------------------------------------------------
+
     async def answer_healthcare_query_stream(self, query: str):
-        """Asynchronously streams the healthcare query process, yielding status updates,
-        model info, source citations, and the generated text token-by-token.
-        """
-        # 1. Check in-memory answer cache first (Feature 8)
+        """Stream the full RAG pipeline with status events, tokens and sources."""
+
         norm_query = self._normalize_query(query)
+
+        # --- Cache hit ---
         if norm_query in self._answer_cache:
             logger.info(f"Cache hit for query: '{query}'")
-            cached_data = self._answer_cache[norm_query]
-            
-            yield {"type": "status", "message": "🧠 Generating response..."}
-            await asyncio.sleep(0.1)
-            
-            model_name = "Gemini" if settings.LLM_PROVIDER.lower() == "gemini" else "Ollama (Local)"
-            yield {"type": "model", "name": model_name}
-            
-            if cached_data["sources"]:
-                yield {"type": "sources", "sources": cached_data["sources"]}
-            
-            answer_text = cached_data["answer"]
-            words = answer_text.split(" ")
-            for i, word in enumerate(words):
-                space = " " if i > 0 else ""
-                yield {"type": "token", "content": space + word}
-                await asyncio.sleep(0.01)
-            
-            yield {"type": "status", "message": "✍️ Writing answer..."}
+            cached = self._answer_cache[norm_query]
+            yield {"type": "status", "message": "- Generating response..."}
             await asyncio.sleep(0.05)
+            model_name = "Gemini" if settings.LLM_PROVIDER.lower() != "ollama" else "Ollama (Local)"
+            yield {"type": "model", "name": model_name}
+            if cached["sources"]:
+                yield {"type": "sources", "sources": cached["sources"]}
+            for word in cached["answer"].split(" "):
+                yield {"type": "token", "content": word + " "}
+                await asyncio.sleep(0.008)
+            yield {"type": "status", "message": "- Done"}
             return
 
-        # 2. Check input guardrails
+        # --- Input guardrail ---
         validation = guardrail.inspect_input(query)
         if not validation["is_allowed"]:
             logger.warning(f"Safety check blocked query: {validation['reason']}")
-            yield {"type": "status", "message": "🚨 Safety check triggered..."}
-            await asyncio.sleep(0.1)
-            
-            model_name = "Gemini" if settings.LLM_PROVIDER.lower() == "gemini" else "Ollama (Local)"
+            yield {"type": "status", "message": "- Safety check triggered..."}
+            await asyncio.sleep(0.05)
+            model_name = "Gemini" if settings.LLM_PROVIDER.lower() != "ollama" else "Ollama (Local)"
             yield {"type": "model", "name": model_name}
-            
-            answer_text = validation["message"]
-            words = answer_text.split(" ")
-            for i, word in enumerate(words):
-                space = " " if i > 0 else ""
-                yield {"type": "token", "content": space + word}
-                await asyncio.sleep(0.01)
+            for word in validation["message"].split(" "):
+                yield {"type": "token", "content": word + " "}
+                await asyncio.sleep(0.008)
             return
 
-        # 3. Classify query intent
+        # --- Classify intent ---
         intent = self.classify_intent(query)
         logger.info(f"Classified query intent: {intent}")
+        model_name = "Gemini" if settings.LLM_PROVIDER.lower() != "ollama" else "Ollama (Local)"
 
-        # 4. Handle CASUAL_CHAT
+        # ---- CASUAL_CHAT ----
         if intent == "CASUAL_CHAT":
-            yield {"type": "status", "message": "🧠 Generating response..."}
-            await asyncio.sleep(0.1)
-            
-            model_name = "Gemini" if settings.LLM_PROVIDER.lower() == "gemini" else "Ollama (Local)"
+            yield {"type": "status", "message": "- Composing reply..."}
+            await asyncio.sleep(0.05)
             yield {"type": "model", "name": model_name}
-            
-            system_instructions = (
-                "You are a helpful Healthcare AI Assistant. Respond politely, warmly, and briefly to the casual chat or greeting. "
-                "Advise the user that they can upload medical documents for explanation, or ask health-related questions. "
-                "Every response MUST naturally end with a relevant, contextual follow-up question based on the topic. "
-                "Never end with generic questions like 'Anything else?'."
-            )
+
             prompt = (
-                f"{system_instructions}\n\n"
-                f"User Query: {query}\n\n"
-                f"Answer:"
+                f"{_CASUAL_SYSTEM}\n\n"
+                f"User message: {query}\n\n"
+                f"Reply:"
             )
-            
             async for token in self._stream_llm(prompt):
                 yield {"type": "token", "content": token}
-            
-            yield {"type": "status", "message": "✍️ Writing answer..."}
+            yield {"type": "status", "message": "- Done"}
             return
 
-        # 5. Handle GENERAL_MEDICAL
+        # ---- GENERAL_MEDICAL ----
         if intent == "GENERAL_MEDICAL":
-            yield {"type": "status", "message": "🧠 Generating response..."}
-            await asyncio.sleep(0.1)
-            
-            model_name = "Gemini" if settings.LLM_PROVIDER.lower() == "gemini" else "Ollama (Local)"
+            yield {"type": "status", "message": "- Thinking..."}
+            await asyncio.sleep(0.05)
             yield {"type": "model", "name": model_name}
-            
-            system_instructions = (
-                "You are a Healthcare AI Assistant. Safety: You cannot diagnose conditions, prescribe medications, or recommend dosages. "
-                "For educational questions, answer directly, explaining concepts naturally and objectively. "
-                "Do NOT start your response with a disclaimer or advice to consult a doctor. "
-                "Rules: Answer the medical question directly using reliable medical knowledge. "
-                "Do NOT refer to or mention any uploaded documents, PDFs, or context. "
-                "Answer naturally and professionally in Markdown.\n"
-                "Every response MUST naturally end with a relevant, contextual follow-up question based on the topic. "
-                "Never end with generic questions like 'Anything else?'."
-            )
+
             prompt = (
-                f"{system_instructions}\n\n"
-                f"Question: {query}\n\n"
+                f"{_GENERAL_MEDICAL_SYSTEM}\n\n"
+                f"User question: {query}\n\n"
                 f"Answer:"
             )
-            
-            accumulated_answer = ""
+            accumulated = ""
             async for token in self._stream_llm(prompt):
-                accumulated_answer += token
+                accumulated += token
                 yield {"type": "token", "content": token}
-                
-            yield {"type": "status", "message": "✍️ Writing answer..."}
-            
-            final_answer = guardrail.enforce_output_safety(accumulated_answer, "GENERAL_MEDICAL")
-            if len(final_answer) > len(accumulated_answer):
-                disclaimer_diff = final_answer[len(accumulated_answer):]
-                yield {"type": "token", "content": disclaimer_diff}
-                
-            self._answer_cache[norm_query] = {
-                "answer": final_answer,
-                "sources": [],
-                "status": "success"
-            }
+
+            yield {"type": "status", "message": "- Done"}
+
+            final = guardrail.enforce_output_safety(accumulated, "GENERAL_MEDICAL")
+            if len(final) > len(accumulated):
+                yield {"type": "token", "content": final[len(accumulated):]}
+
+            self._answer_cache[norm_query] = {"answer": final, "sources": [], "status": "success"}
             return
 
-        # 6. Handle DOCUMENT_QUERY
-        # Check if documents exist in local store
+        # ---- DOCUMENT_QUERY ----
         chunks = self._load_chunks()
         if not chunks:
-            logger.info("No documents uploaded yet, returning natural warning.")
-            yield {"type": "status", "message": "🧠 Generating response..."}
-            await asyncio.sleep(0.1)
-            
-            model_name = "Gemini" if settings.LLM_PROVIDER.lower() == "gemini" else "Ollama (Local)"
+            logger.info("No documents uploaded yet.")
+            yield {"type": "status", "message": "- Generating response..."}
+            await asyncio.sleep(0.05)
             yield {"type": "model", "name": model_name}
-            
-            warning_text = "I don't see any uploaded medical documents yet. Please upload your report and I'll help explain it."
-            words = warning_text.split(" ")
-            for i, word in enumerate(words):
-                space = " " if i > 0 else ""
-                yield {"type": "token", "content": space + word}
-                await asyncio.sleep(0.01)
-                
-            yield {"type": "status", "message": "✍️ Writing answer..."}
+            msg = (
+                "It looks like no medical documents have been uploaded yet. "
+                "Please upload your report or PDF, and I'll explain it in plain language. "
+                "Alternatively, feel free to ask me any general health question!"
+            )
+            for word in msg.split(" "):
+                yield {"type": "token", "content": word + " "}
+                await asyncio.sleep(0.008)
+            yield {"type": "status", "message": "- Done"}
             return
 
-        # Documents exist: perform RAG
-        yield {"type": "status", "message": "🔍 Analyzing uploaded medical documents..."}
-        await asyncio.sleep(0.1)
-        
-        retrieved_docs = self.search_similar_documents(query=query, k=3)
-        
-        yield {"type": "status", "message": "✓ Relevant medical information found."}
-        await asyncio.sleep(0.1)
-        yield {"type": "status", "message": "🧠 Generating response..."}
-        await asyncio.sleep(0.1)
-        
+        yield {"type": "status", "message": "- Searching your medical documents..."}
+        await asyncio.sleep(0.05)
+
+        retrieved_docs = self.search_similar_documents(query=query, k=4)
+
+        yield {"type": "status", "message": "- Generating response..."}
+        await asyncio.sleep(0.05)
+
         context_blocks = []
         for idx, doc in enumerate(retrieved_docs):
             context_blocks.append(
-                f"[Document {idx+1}] File: {doc['metadata']['source']}, Page: {doc['metadata']['page']}\n"
-                f"Content: {doc['page_content']}"
+                f"[Passage {idx + 1}]\n{doc['page_content']}"
             )
-        context_text = "\n\n".join(context_blocks)
-        
-        sources = []
-        for doc in retrieved_docs:
-            sources.append({
+        context_text = "\n\n".join(context_blocks) if context_blocks else "No relevant passages found."
+
+        sources = [
+            {
                 "source": doc["metadata"]["source"],
                 "page": doc["metadata"]["page"],
-                "relevance_score": doc["relevance_score"]
-            })
-            
-        yield {"type": "sources", "sources": sources}
-        
-        model_name = "Gemini" if settings.LLM_PROVIDER.lower() == "gemini" else "Ollama (Local)"
+                "relevance_score": doc["relevance_score"],
+            }
+            for doc in retrieved_docs
+        ]
+        if sources:
+            yield {"type": "sources", "sources": sources}
+
         yield {"type": "model", "name": model_name}
-        
-        system_instructions = (
-            "You are a Healthcare AI Assistant. Safety: Do NOT diagnose the user or prescribe medication. Answer educational questions naturally, explaining findings objectively. Never start your response with a disclaimer or warning. "
-            "Rules: Answer the user's question by combining the retrieved document context below with reliable medical knowledge. "
-            "CRITICAL: Do NOT mention where the information is coming from. Never use words like 'provided documents', 'provided text', 'uploaded files', 'the document', 'the report', 'the context', 'retrieved context', 'uploaded PDF', 'page number', or 'according to the report'. Write the response seamlessly as if you are directly reviewing the patient's records or explaining general concepts. Do not say 'based on the documents' or 'the documents state'.\n"
-            "Every response MUST naturally end with a relevant, contextual follow-up question based on the topic. "
-            "Never end with generic questions like 'Anything else?'."
-        )
-        
+
         prompt = (
-            f"{system_instructions}\n\n"
-            f"Context:\n{context_text}\n\n"
-            f"Question: {query}\n\n"
+            f"{_DOCUMENT_SYSTEM}\n\n"
+            f"Retrieved context:\n{context_text}\n\n"
+            f"User question: {query}\n\n"
             f"Answer:"
         )
-        
-        accumulated_answer = ""
+
+        accumulated = ""
         async for token in self._stream_llm(prompt):
-            accumulated_answer += token
+            accumulated += token
             yield {"type": "token", "content": token}
-            
-        yield {"type": "status", "message": "✍️ Writing answer..."}
-        
-        final_answer = guardrail.enforce_output_safety(accumulated_answer, "DOCUMENT_QUERY")
-        if len(final_answer) > len(accumulated_answer):
-            disclaimer_diff = final_answer[len(accumulated_answer):]
-            yield {"type": "token", "content": disclaimer_diff}
-            
-        self._answer_cache[norm_query] = {
-            "answer": final_answer,
-            "sources": sources,
-            "status": "success"
-        }
+
+        yield {"type": "status", "message": "- Done"}
+
+        final = guardrail.enforce_output_safety(accumulated, "DOCUMENT_QUERY")
+        if len(final) > len(accumulated):
+            yield {"type": "token", "content": final[len(accumulated):]}
+
+        self._answer_cache[norm_query] = {"answer": final, "sources": sources, "status": "success"}
+
+    # ------------------------------------------------------------------
+    # Synchronous (non-streaming) fallback
+    # ------------------------------------------------------------------
 
     def answer_healthcare_query(self, query: str) -> Dict[str, Any]:
-        """Backward-compatible synchronous query generator using cached result or standard run."""
+        """Synchronous RAG query handler (non-streaming fallback)."""
         try:
             norm_query = self._normalize_query(query)
             if norm_query in self._answer_cache:
@@ -459,51 +518,22 @@ class RAGService:
 
             validation = guardrail.inspect_input(query)
             if not validation["is_allowed"]:
-                return {
-                    "answer": validation["message"],
-                    "sources": [],
-                    "status": "blocked"
-                }
+                return {"answer": validation["message"], "sources": [], "status": "blocked"}
 
             intent = self.classify_intent(query)
             logger.info(f"Classified query intent (sync): {intent}")
 
             if intent == "CASUAL_CHAT":
-                system_instructions = (
-                    "You are a helpful Healthcare AI Assistant. Respond politely, warmly, and briefly to the casual chat or greeting. "
-                    "Advise the user that they can upload medical documents for explanation, or ask health-related questions. "
-                    "Every response MUST naturally end with a relevant, contextual follow-up question based on the topic. "
-                    "Never end with generic questions like 'Anything else?'."
-                )
-                prompt = f"{system_instructions}\n\nUser Query: {query}\n\nAnswer:"
+                prompt = f"{_CASUAL_SYSTEM}\n\nUser message: {query}\n\nReply:"
                 llm_response = self.llm.invoke(prompt)
-                answer = llm_response.content.strip()
-                return {
-                    "answer": answer,
-                    "sources": [],
-                    "status": "success"
-                }
+                return {"answer": llm_response.content.strip(), "sources": [], "status": "success"}
 
             if intent == "GENERAL_MEDICAL":
-                system_instructions = (
-                    "You are a Healthcare AI Assistant. Safety: You cannot diagnose conditions, prescribe medications, or recommend dosages. "
-                    "For educational questions, answer directly, explaining concepts naturally and objectively. "
-                    "Do NOT start your response with a disclaimer or advice to consult a doctor. "
-                    "Rules: Answer the medical question directly using reliable medical knowledge. "
-                    "Do NOT refer to or mention any uploaded documents, PDFs, or context. "
-                    "Answer naturally and professionally in Markdown.\n"
-                    "Every response MUST naturally end with a relevant, contextual follow-up question based on the topic. "
-                    "Never end with generic questions like 'Anything else?'."
-                )
-                prompt = f"{system_instructions}\n\nQuestion: {query}\n\nAnswer:"
+                prompt = f"{_GENERAL_MEDICAL_SYSTEM}\n\nUser question: {query}\n\nAnswer:"
                 llm_response = self.llm.invoke(prompt)
                 answer = llm_response.content.strip()
-                final_answer = guardrail.enforce_output_safety(answer, "GENERAL_MEDICAL")
-                res = {
-                    "answer": final_answer,
-                    "sources": [],
-                    "status": "success"
-                }
+                final = guardrail.enforce_output_safety(answer, "GENERAL_MEDICAL")
+                res = {"answer": final, "sources": [], "status": "success"}
                 self._answer_cache[norm_query] = res
                 return res
 
@@ -511,55 +541,47 @@ class RAGService:
             chunks = self._load_chunks()
             if not chunks:
                 return {
-                    "answer": "I don't see any uploaded medical documents yet. Please upload your report and I'll help explain it.",
+                    "answer": (
+                        "It looks like no medical documents have been uploaded yet. "
+                        "Please upload your report or PDF, and I'll explain it in plain language."
+                    ),
                     "sources": [],
-                    "status": "success"
+                    "status": "success",
                 }
 
-            retrieved_docs = self.search_similar_documents(query=query, k=3)
-            context_blocks = []
-            for idx, doc in enumerate(retrieved_docs):
-                context_blocks.append(
-                    f"[Document {idx+1}] File: {doc['metadata']['source']}, Page: {doc['metadata']['page']}\n"
-                    f"Content: {doc['page_content']}"
-                )
-            context_text = "\n\n".join(context_blocks)
+            retrieved_docs = self.search_similar_documents(query=query, k=4)
+            context_blocks = [
+                f"[Passage {idx + 1}]\n{doc['page_content']}"
+                for idx, doc in enumerate(retrieved_docs)
+            ]
+            context_text = "\n\n".join(context_blocks) if context_blocks else "No relevant passages found."
 
-            system_instructions = (
-                "You are a Healthcare AI Assistant. Safety: Do NOT diagnose the user or prescribe medication. Answer educational questions naturally, explaining findings objectively. Never start your response with a disclaimer or warning. "
-                "Rules: Answer the user's question by combining the retrieved document context below with reliable medical knowledge. "
-                "CRITICAL: Do NOT mention where the information is coming from. Never use words like 'provided documents', 'provided text', 'uploaded files', 'the document', 'the report', 'the context', 'retrieved context', 'uploaded PDF', 'page number', or 'according to the report'. Write the response seamlessly as if you are directly reviewing the patient's records or explaining general concepts. Do not say 'based on the documents' or 'the documents state'.\n"
-                "Every response MUST naturally end with a relevant, contextual follow-up question based on the topic. "
-                "Never end with generic questions like 'Anything else?'."
-            )
             prompt = (
-                f"{system_instructions}\n\n"
-                f"Context:\n{context_text}\n\n"
-                f"Question: {query}\n\n"
+                f"{_DOCUMENT_SYSTEM}\n\n"
+                f"Retrieved context:\n{context_text}\n\n"
+                f"User question: {query}\n\n"
                 f"Answer:"
             )
 
             llm_response = self.llm.invoke(prompt)
             answer = llm_response.content.strip()
+            final = guardrail.enforce_output_safety(answer, "DOCUMENT_QUERY")
 
-            final_answer = guardrail.enforce_output_safety(answer, "DOCUMENT_QUERY")
-            sources = []
-            for doc in retrieved_docs:
-                sources.append({
+            sources = [
+                {
                     "source": doc["metadata"]["source"],
                     "page": doc["metadata"]["page"],
-                    "relevance_score": doc["relevance_score"]
-                })
-
-            res = {
-                "answer": final_answer,
-                "sources": sources,
-                "status": "success"
-            }
+                    "relevance_score": doc["relevance_score"],
+                }
+                for doc in retrieved_docs
+            ]
+            res = {"answer": final, "sources": sources, "status": "success"}
             self._answer_cache[norm_query] = res
             return res
+
         except Exception as e:
             logger.error(f"Error in sync RAG answer generation: {e}")
             raise e
+
 
 rag_service = RAGService()

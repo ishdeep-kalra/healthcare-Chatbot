@@ -55,7 +55,9 @@ export default function ChatWindow({ messages, isLoading, onSendMessage }) {
             </div>
             
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Welcome to <span className="text-transparent bg-clip-text bg-gradient-to-r from-clinical-400 to-indigo-400">MedAI</span>
+              Welcome to <span className="text-teal-400 font-extrabold">
+  MedAI
+</span>
             </h2>
             <p className="mt-2 text-sm sm:text-base text-slate-400 max-w-md">
               Your intelligent clinical assistant. Ask medical questions to query pre-ingested health guidelines with semantic context retrieval.
@@ -90,7 +92,7 @@ export default function ChatWindow({ messages, isLoading, onSendMessage }) {
             ))}
 
             {/* Typing Indicator */}
-            {isLoading && (
+            {isLoading && (messages.length === 0 || messages[messages.length - 1].sender !== "ai") && (
               <div className="flex w-full gap-4 py-6 border-b border-slate-800/40 justify-start">
                 <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-clinical-600 flex items-center justify-center text-white shadow-md shadow-clinical-500/10">
                   <Activity className="w-5 h-5" />

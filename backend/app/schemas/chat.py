@@ -3,6 +3,7 @@ from typing import List
 
 class ChatRequest(BaseModel):
     question: str = Field(..., description="The healthcare query or question from the user")
+    stream: bool = Field(default=False, description="Whether to stream the response token-by-token")
 
 class SourceMetadata(BaseModel):
     source: str = Field(..., description="Filename of the source document")

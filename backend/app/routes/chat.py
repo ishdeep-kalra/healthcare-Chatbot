@@ -1,4 +1,6 @@
 from fastapi import APIRouter, HTTPException, Query, status
+from fastapi.responses import StreamingResponse
+import json
 from app.services.rag_service import rag_service
 from app.services.guardrail import guardrail
 from app.services.logger import logger
@@ -54,10 +56,10 @@ async def retrieve_context(
             detail=f"An error occurred while retrieving relevant chunks: {str(e)}"
         )
 
-@router.post("", response_model=ChatResponse)
+@router.post("")
 async def chat(request: ChatRequest):
-    """Processes RAG medical questions, retrieves context, and queries Gemini."""
-    logger.info(f"Received RAG chat query request: '{request.question}'")
+    """Processes RAG medical questions, retrieves context, and queries the LLM (optionally streaming)."""
+    logger.info(f"Received RAG chat query request: '{request.question}' (stream={request.stream})")
     
     if not request.question.strip():
         raise HTTPException(
@@ -65,7 +67,25 @@ async def chat(request: ChatRequest):
             detail="Question payload cannot be empty."
         )
         
-    # 1. Enforce Healthcare Safety Guardrails (Input checks)
+    # 1. Handle streaming request
+    if request.stream:
+        async def event_generator():
+            try:
+                async for chunk in rag_service.answer_healthcare_query_stream(request.question):
+                    yield f"data: {json.dumps(chunk)}\n\n"
+                yield "data: {\"type\": \"done\"}\n\n"
+            except Exception as e:
+                logger.error(f"Error in streaming generation: {e}")
+                error_event = {"type": "error", "message": f"An error occurred: {str(e)}"}
+                yield f"data: {json.dumps(error_event)}\n\n"
+
+        return StreamingResponse(
+            event_generator(),
+            media_type="text/event-stream"
+        )
+        
+    # 2. Synchronous backward compatible fallback
+    # Enforce Healthcare Safety Guardrails (Input checks)
     validation = guardrail.inspect_input(request.question)
     if not validation["is_allowed"]:
         logger.warning(f"Safety check blocked query: {validation['reason']}")
@@ -76,7 +96,7 @@ async def chat(request: ChatRequest):
         )
         
     try:
-        # 2. Run the complete RAG Pipeline (Retrieve -> Prompt -> Gemini -> Enforce output safety)
+        # Run the complete RAG Pipeline (Retrieve -> Prompt -> LLM -> Enforce output safety)
         result = rag_service.answer_healthcare_query(request.question)
         
         return ChatResponse(

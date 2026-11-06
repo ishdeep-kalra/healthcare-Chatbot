@@ -3,7 +3,7 @@ import ReactMarkdown from "react-markdown";
 import { User, Activity, BookOpen, ChevronDown, ChevronUp, FileText } from "lucide-react";
 
 export default function Message({ message }) {
-  const { sender, text, sources } = message;
+  const { sender, text, sources, statusUpdates, model, isStreaming } = message;
   const isUser = sender === "user";
   const [sourcesExpanded, setSourcesExpanded] = useState(false);
 
@@ -39,7 +39,16 @@ export default function Message({ message }) {
       <div className={`flex flex-col max-w-[85%] sm:max-w-[75%] gap-2 ${isUser ? "items-end" : "items-start"}`}>
         {/* Header Sender Info */}
         <span className="text-xs font-semibold text-slate-400 px-1">
-          {isUser ? "You" : "MedAI Assistant"}
+          {isUser ? "You" : (
+            <span className="flex items-center gap-2 flex-wrap">
+              <span>MedAI Assistant</span>
+              {model && (
+                <span className="text-[10px] font-normal px-2 py-0.5 rounded-full bg-slate-900/60 border border-slate-700/50 text-slate-300">
+                  {model.toLowerCase().includes("gemini") ? "🟢 Powered by Gemini" : "🖥️ Powered by Ollama (Local)"}
+                </span>
+              )}
+            </span>
+          )}
         </span>
 
         {/* Message Bubble */}
@@ -48,6 +57,25 @@ export default function Message({ message }) {
             ? "bg-gradient-to-br from-clinical-600 to-clinical-700 text-white rounded-tr-none"
             : "bg-slate-800/80 border border-slate-700/60 text-slate-200 rounded-tl-none"
         }`}>
+          {!isUser && statusUpdates && statusUpdates.length > 0 && (
+            <div className="flex flex-col gap-1.5 mb-2.5 pb-2.5 border-b border-slate-700/40 text-xs text-slate-400">
+              {statusUpdates.map((update, idx) => {
+                const isLast = idx === statusUpdates.length - 1;
+                const isThinking = isLast && isStreaming && !text;
+                return (
+                  <div key={idx} className="flex items-center gap-2 animate-fade-in font-medium">
+                    <span className="flex-1">{update}</span>
+                    {isThinking && (
+                      <span className="flex h-2 w-2 relative">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-clinical-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-clinical-500"></span>
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
           {isUser ? (
             <p className="whitespace-pre-wrap">{text}</p>
           ) : (
