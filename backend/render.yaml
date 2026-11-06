@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: healthcare-chatbot-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: LLM_PROVIDER
+        value: gemini
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: CHROMA_PERSIST_DIR
+        value: ../data/chromadb
+      - key: LOG_LEVEL
+        value: info
