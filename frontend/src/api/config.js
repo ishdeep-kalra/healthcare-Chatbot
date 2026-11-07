@@ -21,6 +21,7 @@ export const API_BASE_URL =
 export const API_ENDPOINTS = {
   chat:     `${API_BASE_URL}/api/chat`,
   retrieve: `${API_BASE_URL}/api/chat/retrieve`,
-  upload:   `${API_BASE_URL}/api/documents/upload`,
+  upload:   `${API_BASE_URL}/api/document/upload`,   // backend router: /api/document (singular)
+  search:   `${API_BASE_URL}/api/document/search`,
   health:   `${API_BASE_URL}/health`,
 };

@@ -10,10 +10,10 @@ services:
         value: gemini
       - key: GEMINI_API_KEY
         sync: false
-      # Set this to your actual Vercel frontend URL(s) — no trailing slash, no wildcard
-      # Example: ["https://your-project.vercel.app","https://your-custom-domain.com"]
+      # Set to your Vercel frontend URL(s). JSON array or comma-separated.
+      # Example: ["https://healthcare-chatbot-ish7.vercel.app"]
       - key: CORS_ORIGINS
-        sync: false
+        value: '["https://healthcare-chatbot-ish7.vercel.app","http://localhost:5173","http://localhost:5174","http://localhost:3000"]'
       - key: CHROMA_PERSIST_DIR
         value: ../data/chromadb
       - key: LOG_LEVEL
