@@ -6,8 +6,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = logging.getLogger("healthcare-chatbot")
 
-# Default allowed origins for local development only.
-# In production (Render), set CORS_ORIGINS env var to your Vercel URL(s).
+# Default allowed origins — includes both local dev and the production Vercel frontend.
+# In production (Render), override via the CORS_ORIGINS environment variable if needed.
 _DEFAULT_DEV_ORIGINS = [
     "http://localhost:5173",
     "http://localhost:5174",
@@ -15,6 +15,8 @@ _DEFAULT_DEV_ORIGINS = [
     "http://127.0.0.1:5173",
     "http://127.0.0.1:5174",
     "http://127.0.0.1:3000",
+    # Production Vercel frontend — always allowed even without env var override
+    "https://healthcare-chatbot-ish7.vercel.app",
 ]
 
 
