@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str = ""
     LLM_PROVIDER: str = "gemini"
     # Configurable Gemini model — override via GEMINI_MODEL env var on Render dashboard
-    GEMINI_MODEL: str = "gemini-2.0-flash"
+    GEMINI_MODEL: str = "gemini-3.8-flash"
     OLLAMA_MODEL: str = "llama3.2"
     CHROMA_PERSIST_DIR: str = "../data/chromadb"
 
