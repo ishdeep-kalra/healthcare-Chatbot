@@ -330,13 +330,29 @@ class RAGService:
     # ------------------------------------------------------------------
     # LLM streaming
     # ------------------------------------------------------------------
-
+    @staticmethod
+    def _content_to_text(content):
+        if isinstance(content, str):
+            return content
+        if isinstance(content, list):
+            parts = []
+            for item in content:
+                if isinstance(item, str):
+                    parts.append(item)
+                elif isinstance(item, dict):
+                    text = item.get("text")
+                    if isinstance(text, str):
+                        parts.append(text)
+            return "\n".join(parts)
+        return str(content) if content is not None else ""
     async def _stream_llm(self, prompt: str):
         """Stream LLM response token-by-token."""
         try:
             async for chunk in self.llm.astream(prompt):
                 if chunk and chunk.content:
-                    yield chunk.content
+                    text = self._content_to_text(chunk.content)
+                    if text:
+                        yield text
         except Exception as e:
             logger.error(f"Error during LLM streaming: {str(e)}")
             error_msg = str(e)
@@ -527,12 +543,12 @@ class RAGService:
             if intent == "CASUAL_CHAT":
                 prompt = f"{_CASUAL_SYSTEM}\n\nUser message: {query}\n\nReply:"
                 llm_response = self.llm.invoke(prompt)
-                return {"answer": llm_response.content.strip(), "sources": [], "status": "success"}
+                return {"answer": self._content_to_text(llm_response.content).strip(), "sources": [], "status": "success"}
 
             if intent == "GENERAL_MEDICAL":
                 prompt = f"{_GENERAL_MEDICAL_SYSTEM}\n\nUser question: {query}\n\nAnswer:"
                 llm_response = self.llm.invoke(prompt)
-                answer = llm_response.content.strip()
+                answer = self._content_to_text(llm_response.content).strip()
                 final = guardrail.enforce_output_safety(answer, "GENERAL_MEDICAL")
                 res = {"answer": final, "sources": [], "status": "success"}
                 self._answer_cache[norm_query] = res
@@ -565,7 +581,7 @@ class RAGService:
             )
 
             llm_response = self.llm.invoke(prompt)
-            answer = llm_response.content.strip()
+            answer = self._content_to_text(llm_response.content).strip()
             final = guardrail.enforce_output_safety(answer, "DOCUMENT_QUERY")
 
             sources = [
