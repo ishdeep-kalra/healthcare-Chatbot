@@ -114,9 +114,10 @@ class RAGService:
                     return self._llm
 
             # Default: Gemini
-            logger.info("Initializing ChatGoogleGenerativeAI model: gemini-1.5-flash...")
+            model_name = settings.GEMINI_MODEL or "gemini-2.0-flash"
+            logger.info(f"Initializing ChatGoogleGenerativeAI model: {model_name}...")
             self._llm = ChatGoogleGenerativeAI(
-                model="gemini-1.5-flash",
+                model=model_name,
                 google_api_key=settings.GEMINI_API_KEY,
                 temperature=0.3,
                 max_tokens=2048,
